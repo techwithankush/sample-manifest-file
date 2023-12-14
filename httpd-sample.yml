@@ -55,7 +55,7 @@ spec:
         idle: infinity
         response: infinity
   virtualhost:
-    fqdn: httpd-contour.chingari.io
+    fqdn: httpd-contour.abc.com
     corsPolicy:
       allowCredentials: true
       allowOrigin:
@@ -72,3 +72,38 @@ spec:
       maxAge: "10m" # preflight requests can be cached for 10 minutes.
     tls:
       secretName: httpd-proxy
+
+--------------------------------
+
+
+
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: letsencrypt-prod
+  namespace: cert-manager
+spec:
+  acme:
+    email: admin@abc.com
+    privateKeySecretRef:
+      name: letsencrypt-prod
+    server: https://acme-v02.api.letsencrypt.org/directory
+    solvers:
+    - http01:
+        ingress:
+          class: contour
+
+--------------------------------
+
+apiVersion: cert-manager.io/v1
+kind: Certificate
+metadata:
+  name: httpd-proxy
+spec:
+  commonName: d
+  dnsNames:
+    -  httpd-contour.abc.com
+  issuerRef:
+    name: letsencrypt-prod
+    kind: ClusterIssuer
+  secretName: httpd-proxy
