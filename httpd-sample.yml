@@ -1,0 +1,72 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: httpd-deployment
+  namespace: namespace-1
+spec:
+  replicas: 3
+  selector:
+    matchLabels:
+      app: httpd
+  template:
+    metadata:
+      labels:
+        app: httpd
+    spec:
+      containers:
+      - name: httpd-container
+        image: httpd:latest
+        ports:
+        - containerPort: 80
+
+--------------------------------
+
+apiVersion: v1
+kind: Service
+metadata:
+  name: httpd-service
+  namespace: namespace-1
+spec:
+  selector:
+    app: httpd
+  ports:
+    - protocol: TCP
+      port: 80
+      targetPort: 80
+  type: ClusterIP
+
+--------------------------------
+
+kind: HTTPProxy
+apiVersion: projectcontour.io/v1
+metadata:
+  name: httpd-proxy
+  namespace: namespace-1
+spec:
+  routes:
+    - conditions:
+        - prefix: /
+      services:
+        - name: httpd-service
+          port: 80
+      loadBalancerPolicy:
+        strategy: WeightedLeastRequest
+      timeoutPolicy:
+        idle: infinity
+        response: infinity
+  virtualhost:
+    fqdn: httpd-contour.chingari.io
+    corsPolicy:
+      allowCredentials: true
+      allowOrigin:
+        - "*" # allows any origin
+      allowMethods:
+        - GET
+        - POST
+        - OPTIONS
+      allowHeaders:
+        - "*" # allows any origin
+      exposeHeaders:
+        - Content-Length
+        - Content-Range
+      maxAge: "10m" # preflight requests can be cached for 10 minutes.
