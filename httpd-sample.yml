@@ -100,7 +100,7 @@ kind: Certificate
 metadata:
   name: httpd-proxy
 spec:
-  commonName: d
+  commonName: httpd-contour.abc.com
   dnsNames:
     -  httpd-contour.abc.com
   issuerRef:
